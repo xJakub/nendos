@@ -100,18 +100,19 @@ class NendoroidsReloadCommand extends Command
 
         foreach ($xpath->query("//img[contains(@class, 'itemImg')]") as $nodeIndex => $node) {
             $imageUrl = $node->getAttribute('src');
+            if (substr($imageUrl, -4) != '.jpg') { continue; }
             if (substr($imageUrl, 0, 2) == '//') {
                 $imageUrl = "http:{$imageUrl}";
-                $imageLocalPath = $nendoroid->getLocalImagePath($nodeIndex);
-                $imageLocalDir = dirname($imageLocalPath);
-                if (!is_dir($imageLocalDir)) {
-                    mkdir($imageLocalDir, 0777, true);
-                }
-                if (!file_exists($imageLocalPath)) {
-                    echo "Fetching $imageUrl -> $imageLocalPath\n";
-                    $imageContents = file_get_contents($imageUrl);
-                    file_put_contents($imageLocalPath, $imageContents);
-                }
+            }
+            $imageLocalPath = $nendoroid->getLocalImagePath($nodeIndex);
+            $imageLocalDir = dirname($imageLocalPath);
+            if (!is_dir($imageLocalDir)) {
+                mkdir($imageLocalDir, 0777, true);
+            }
+            if (!file_exists($imageLocalPath)) {
+                echo "Fetching $imageUrl -> $imageLocalPath\n";
+                $imageContents = file_get_contents($imageUrl);
+                file_put_contents($imageLocalPath, $imageContents);
             }
         }
 
