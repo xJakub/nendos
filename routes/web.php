@@ -12,27 +12,38 @@
 */
 
 use App\Nendoroid;
+use Illuminate\Support\Collection;
+
+const NENDOS_PER_PAGE = 20;
+
+function createCollectionPaginator(Collection $collection, int $perPage) {
+    $total = count($collection);
+    $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+    $collection = $collection->slice(($currentPage - 1) * $perPage, $perPage);
+    $paginator = new \Illuminate\Pagination\LengthAwarePaginator($collection, $total, $perPage, null, [
+        'path' => Request::url(),
+        'query' => Request::query()
+    ]);
+    return $paginator;
+}
+
 
 Route::get('/', function () {
     return view('nendoroids', [
-        'nendoroids' => \App\Nendoroid::orderBy('release_date', 'desc')->paginate(20)
+        'nendoroids' => \App\Nendoroid::orderBy('release_date', 'desc')->paginate(NENDOS_PER_PAGE)
     ]);
 });
+
 
 Route::get('/series', function () {
     $nendoroids = \App\Nendoroid::orderBy('release_date', 'desc')->get();
     $results = $nendoroids->groupBy(function ($nendoroid) { return str_slug($nendoroid->series); })->sortKeys();
     unset($results['']);
-
-    $perPage = 20;
-    $total = count($results);
-    $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-    $results = $results->slice(($currentPage - 1) * $perPage, $perPage);
-    $results = new \Illuminate\Pagination\LengthAwarePaginator($results, $total, $perPage, null, ['path' => Request::url(), 'query' => Request::query()]);
     return view('nendoroid-series', [
-        'results' => $results
+        'results' => createCollectionPaginator($results, NENDOS_PER_PAGE),
     ]);
 })->name('nendoroid-series-list');
+
 
 Route::get('/series/{series}', function ($series) {
     /** @var \App\Nendoroid[] $nendoroids */
@@ -41,16 +52,9 @@ Route::get('/series/{series}', function ($series) {
     });
 
     $title = $results->count() ? "{$results->reverse()->values()[0]->series} series Nendoroids" : null;
-
-    $perPage = 20;
-    $total = count($results);
-    $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-    $results = $results->slice(($currentPage - 1) * $perPage, $perPage);
-    $results = new \Illuminate\Pagination\LengthAwarePaginator($results, $total, $perPage, null, ['path' => Request::url(), 'query' => Request::query()]);
-
     return view('nendoroids', [
         'title' => $title,
-        'nendoroids' => $results
+        'nendoroids' => createCollectionPaginator($results, NENDOS_PER_PAGE)
     ]);
 })->name('nendoroid-series');
 
@@ -80,16 +84,29 @@ Route::get('/search', function () {
             }
         }
         return true;
-    });
-
-    $perPage = 20;
-    $total = count($results);
-    $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-    $results = $results->slice(($currentPage - 1) * $perPage, $perPage);
-    $results = new \Illuminate\Pagination\LengthAwarePaginator($results, $total, $perPage, null, ['path' => Request::url(), 'query' => Request::query()]);
+    })->values();
 
     return view('nendoroids', [
         'title' => "Results for $query",
-        'nendoroids' => $results
+        'nendoroids' => createCollectionPaginator($results, NENDOS_PER_PAGE)
     ]);
 })->name('nendoroids-search');
+
+
+Route::get('/nendoroids/{nendoroid}/{slug?}', function (Nendoroid $nendoroid, string $slug = null) {
+    $correctSlug = str_slug($nendoroid->getCleanedName());
+    if ($correctSlug !== $slug) {
+        return redirect($nendoroid->getLink());
+    }
+
+    $series = str_slug($nendoroid->series);
+    $seriesResults = \App\Nendoroid::orderBy('release_date', 'desc')->get()->filter(function(Nendoroid $nendoroid) use ($series) {
+        return str_slug($nendoroid->series) === $series;
+    });
+
+    return view('nendoroid', [
+        'title' => "{$nendoroid->getCleanedName()} - #{$nendoroid->number}",
+        'nendoroid' => $nendoroid,
+        'seriesNendoroids' => $seriesResults
+    ]);
+})->name('nendoroid');

@@ -1,18 +1,20 @@
 <!doctype html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <script src="{{ asset('js/app.js') }}"></script>
-    <meta name="viewport" content="width=512px">
-    <title>
-        @empty($title)
-            Nendos
-        @endempty
-        @isset($title)
-            {{ $title }}
-        @endisset
-    </title>
+    @section('head')
+        <meta charset="utf-8">
+        <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+        <script src="{{ asset('js/app.js') }}"></script>
+        <meta name="viewport" content="width=512px">
+        <title>
+            @empty($title)
+                Nendos
+            @endempty
+            @isset($title)
+                {{ $title }}
+            @endisset
+        </title>
+    @show
 </head>
 <body>
 <div class="container">

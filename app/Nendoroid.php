@@ -40,17 +40,42 @@ class Nendoroid extends Model
         return "img/nendoroids/{$slug}/{$index}.jpg";
     }
 
-    public function getLocalImagePath($index) {
-        $path = $this->getImagePath($index);
-        return "public/{$path}";
+    public function getAvailableImages() {
+        $slug = str_slug($this->number);
+        $files = glob(base_path() . "/public/img/nendoroids/{$slug}/*.jpg");
+        $result = [];
+        foreach ($files as $file) {
+            $result[] = basename($file, '.jpg');
+        }
+        return $result;
     }
 
-    public function sluggable()
-    {
+    public function getLocalImagePath($index) {
+        $path = $this->getImagePath($index);
+        return base_path(). "/public/{$path}";
+    }
+
+    public function sluggable() {
         return [
             'slug' => [
                 'source' => 'number'
             ]
         ];
+    }
+
+    public function getRouteKeyName() {
+        return 'slug';
+    }
+
+    public function getCleanedName() {
+        $name = $this->name;
+        $name = str_replace('Nendoroid ', '', $name);
+        $name = preg_replace("' \([^\)]+\)$'", '', $name);
+        return $name;
+    }
+
+    public function getLink() {
+        $nameSlug = str_slug($this->getCleanedName());
+        return route('nendoroid', [$this, $nameSlug]);
     }
 }
