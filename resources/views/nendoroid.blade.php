@@ -21,7 +21,7 @@
                     <dt>Series</dt>
                     <dd>
                         {{ $nendoroid->series }}<br>
-                        <a href="{{ route('nendoroids-search', ['q' => trim(explode(':', $nendoroid->getCleanedName())[0])]) }}">
+                        <a href="{{ route('nendoroid-series', [str_slug($nendoroid->series)]) }}">
                             See all {{ count($seriesNendoroids) }} Nendoroids in the series
                         </a>
                     </dd>
