@@ -19,7 +19,7 @@ const NENDOS_PER_PAGE = 20;
 function createCollectionPaginator(Collection $collection, int $perPage) {
     $total = count($collection);
     $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-    $collection = $collection->slice(($currentPage - 1) * $perPage, $perPage);
+    $collection = $collection->slice(($currentPage - 1) * $perPage, $perPage)->values();
     $paginator = new \Illuminate\Pagination\LengthAwarePaginator($collection, $total, $perPage, null, [
         'path' => Request::url(),
         'query' => Request::query()
