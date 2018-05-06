@@ -49,7 +49,7 @@ Route::get('/series/{series}', function ($series) {
     /** @var \App\Nendoroid[] $nendoroids */
     $results = \App\Nendoroid::orderBy('release_date', 'desc')->get()->filter(function(Nendoroid $nendoroid) use ($series) {
         return str_slug($nendoroid->series) === $series;
-    });
+    })->values();
 
     $title = $results->count() ? "{$results->reverse()->values()[0]->series} series Nendoroids" : null;
     return view('nendoroids', [
@@ -102,7 +102,7 @@ Route::get('/nendoroids/{nendoroid}/{slug?}', function (Nendoroid $nendoroid, st
     $series = str_slug($nendoroid->series);
     $seriesResults = \App\Nendoroid::orderBy('release_date', 'desc')->get()->filter(function(Nendoroid $nendoroid) use ($series) {
         return str_slug($nendoroid->series) === $series;
-    });
+    })->values();
 
     return view('nendoroid', [
         'title' => "{$nendoroid->getCleanedName()} - #{$nendoroid->number}",
