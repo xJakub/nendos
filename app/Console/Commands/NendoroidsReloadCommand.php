@@ -50,7 +50,7 @@ class NendoroidsReloadCommand extends Command
 
     private function processGoodSmileYear($year) {
         $changes = 0;
-        $url = "http://www.goodsmile.info/en/products/category/nendoroid_series/announced/$year";
+        $url = "https://www.goodsmile.info/en/products/category/nendoroid_series/announced/$year";
         echo "Getting $url...\n";
         $html = file_get_contents($url);
 
@@ -86,7 +86,7 @@ class NendoroidsReloadCommand extends Command
     private function fillExtraInfo(Nendoroid $nendoroid) {
         $url = $nendoroid->official_url;
         echo "Getting $url...\n";
-        $html = file_get_contents($url);
+        $html = file_get_contents(str_replace('http://', 'https://', $url));
 
         $dom = new \DOMDocument();
         $dom->loadHTML($html);
