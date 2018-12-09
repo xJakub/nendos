@@ -12,7 +12,7 @@ class NendoroidsReloadCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'nendoroids:reload';
+    protected $signature = 'nendoroids:reload {--quick}';
 
     /**
      * The console command description.
@@ -40,11 +40,16 @@ class NendoroidsReloadCommand extends Command
     {
         libxml_use_internal_errors(true);
         for ($year = date('Y'); $year >= 2006; $year--) {
-            $this->processGoodSmileYear($year);
+            $changes = $this->processGoodSmileYear($year);
+            if (!$changes && $this->option('quick')) {
+                echo "No changes, skipping!\n";
+                break;
+            }
         }
     }
 
     private function processGoodSmileYear($year) {
+        $changes = 0;
         $url = "http://www.goodsmile.info/en/products/category/nendoroid_series/announced/$year";
         echo "Getting $url...\n";
         $html = file_get_contents($url);
@@ -73,7 +78,9 @@ class NendoroidsReloadCommand extends Command
             echo "Found {$number} - {$name}\n";
 
             $this->fillExtraInfo($nendoroid);
+            $changes++;
         }
+        return $changes;
     }
 
     private function fillExtraInfo(Nendoroid $nendoroid) {

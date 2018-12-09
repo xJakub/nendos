@@ -27,16 +27,21 @@ function createCollectionPaginator(Collection $collection, int $perPage) {
     return $paginator;
 }
 
+function getNendoroidsQuery() {
+    return Nendoroid::orderBy('release_date', 'desc')
+        ->orderBy('number', 'desc');
+}
+
 
 Route::get('/', function () {
     return view('nendoroids', [
-        'nendoroids' => \App\Nendoroid::orderBy('release_date', 'desc')->paginate(NENDOS_PER_PAGE)
+        'nendoroids' => getNendoroidsQuery()->paginate(NENDOS_PER_PAGE)
     ]);
 });
 
 
 Route::get('/series', function () {
-    $nendoroids = \App\Nendoroid::orderBy('release_date', 'desc')->get();
+    $nendoroids = getNendoroidsQuery()->get();
     $results = $nendoroids->groupBy(function ($nendoroid) { return str_slug($nendoroid->series); })->sortKeys();
     unset($results['']);
     return view('nendoroid-series', [
@@ -47,7 +52,7 @@ Route::get('/series', function () {
 
 Route::get('/series/{series}', function ($series) {
     /** @var \App\Nendoroid[] $nendoroids */
-    $results = \App\Nendoroid::orderBy('release_date', 'desc')->get()->filter(function(Nendoroid $nendoroid) use ($series) {
+    $results = getNendoroidsQuery()->get()->filter(function(Nendoroid $nendoroid) use ($series) {
         return str_slug($nendoroid->series) === $series;
     })->values();
 
@@ -68,7 +73,7 @@ Route::get('/search', function () {
     $queryParts = array_unique(array_map('trim', explode(' ', $mySlug($query))));
 
     /** @var \App\Nendoroid[] $nendoroids */
-    $results = \App\Nendoroid::orderBy('release_date', 'desc')->get()->filter(function(Nendoroid $nendoroid) use ($queryParts, $mySlug) {
+    $results = getNendoroidsQuery()->get()->filter(function(Nendoroid $nendoroid) use ($queryParts, $mySlug) {
         $normalizedSeries = preg_replace("'([a-z])([A-Z])'", '$1 $2', $nendoroid->series);
 
         $sources = [$nendoroid->number, $nendoroid->series, $nendoroid->name, $normalizedSeries];
@@ -100,7 +105,7 @@ Route::get('/nendoroids/{nendoroid}/{slug?}', function (Nendoroid $nendoroid, st
     }
 
     $series = str_slug($nendoroid->series);
-    $seriesResults = \App\Nendoroid::orderBy('release_date', 'desc')->get()->filter(function(Nendoroid $nendoroid) use ($series) {
+    $seriesResults = getNendoroidsQuery()->get()->filter(function(Nendoroid $nendoroid) use ($series) {
         return str_slug($nendoroid->series) === $series;
     })->values();
 
